@@ -1,4 +1,4 @@
 package com.jobwiseai.jobwiseai_backend.model;
 
-public class User {
+public class AuthResponse {
 }
