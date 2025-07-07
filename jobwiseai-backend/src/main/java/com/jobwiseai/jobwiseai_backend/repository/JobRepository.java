@@ -11,35 +11,35 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface JobRepository extends JpaRepository<Job,Long>{
+public interface JobRepository extends JpaRepository<Job, UUID> {
 
-    //Find jobs by employer
+    // Find jobs by employer
     List<Job> findByEmployerOrderByCreatedAtDesc(User employer);
 
-    //Find active jobs by employer
-    List<Job>findByEmployerAnIsActiveOrderByCreatedAtDesc(User employer, Boolean isActive);
+    // Find active jobs by employer
+    List<Job> findByEmployerAndIsActiveOrderByCreatedAtDesc(User employer, Boolean isActive);
 
-    //Find jobs by company
-    List<Job> findByCompanyIdOrderByCreatedAtDesc(Long companyId);
+    // Find jobs by company
+    List<Job> findByCompanyIdOrderByCreatedAtDesc(UUID companyId);
 
-    //Find active jobs
+    // Find active jobs
     Page<Job> findByIsActiveOrderByCreatedAtDesc(Boolean isActive, Pageable pageable);
 
-    //Find job by ID and employer (for security)
-    Optional<Job> findByIdAndEmployer(Long id, User employer);
+    // Find job by ID and employer (for security)
+    Optional<Job> findByIdAndEmployer(UUID id, User employer);
 
-    //Search jobs by title or description
-    @Query("SELECT j FROM Job j.isActive = true AND " +
+    // Search jobs by title or description
+    @Query("SELECT j FROM Job j WHERE j.isActive = true AND " +
             "(LOWER(j.title) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-            "LOWER(j.description) LIKE LOWER(CONCAT('%' :query, '%')))")
+            "LOWER(j.description) LIKE LOWER(CONCAT('%', :query, '%')))")
     Page<Job> searchJobs(@Param("query") String query, Pageable pageable);
 
     // Count jobs by employer
     long countByEmployer(User employer);
 
-    //Count active jobs by employer
+    // Count active jobs by employer
     long countByEmployerAndIsActive(User employer, Boolean isActive);
-
 }

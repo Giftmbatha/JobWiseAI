@@ -16,6 +16,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "jobs")
@@ -26,8 +27,8 @@ import java.util.List;
 public class Job {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @NotBlank(message = "Job title is required")
     @Size(max = 200, message = "Job title must exceed 200 characters")
@@ -53,7 +54,7 @@ public class Job {
     private BigDecimal salaryMin;
 
     @DecimalMax(value = "0.0", message = "Minimum salary must be positive")
-    @Column(name = "Salary_min", precision = 10, scale = 2)
+    @Column(name = "Salary_max", precision = 10, scale = 2)
     private BigDecimal salaryMax;
 
     @NotBlank(message = "Location is required")

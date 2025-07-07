@@ -6,11 +6,12 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
 public class JobResponse {
-    private Long id;
+    private UUID id;
     private String title;
     private String description;
     private List<String> requirements;
@@ -23,7 +24,7 @@ public class JobResponse {
     private List<String> skills;
     private List<String> benefits;
     private CompanyDto company;
-    private Long employerId;
+    private UUID employerId;
     private Boolean isActive;
     private LocalDateTime applicationDeadline;
     private Integer applicationsCount;
@@ -34,7 +35,7 @@ public class JobResponse {
     @Data
     @Builder
     public static class CompanyDto {
-        private Long id;
+        private UUID id;
         private String name;
         private String description;
         private String website;

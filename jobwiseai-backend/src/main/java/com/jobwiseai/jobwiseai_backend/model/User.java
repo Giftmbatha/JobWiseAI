@@ -40,11 +40,14 @@ public class User extends BaseEntity implements UserDetails {
 
     private boolean emailVerified = false;
 
-    /* @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private JobSeekerProfile jobSeekerProfile;
+     /*@OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private JobSeekerProfile jobSeekerProfile;*/
 
     @OneToOne(mappedBy = "employer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Company company;*/
+    private Company company;
+
+    @OneToMany(mappedBy = "employer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Job> jobs;
 
     public enum UserType {
         JOBSEEKER,
