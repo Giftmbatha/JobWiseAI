@@ -1,6 +1,5 @@
 package com.jobwiseai.jobwiseai_backend.model;
 
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -25,13 +24,12 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class Job {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @NotBlank(message = "Job title is required")
-    @Size(max = 200, message = "Job title must exceed 200 characters")
+    @Size(max = 200, message = "Job title must not exceed 200 characters")
     @Column(nullable = false)
     private String title;
 
@@ -50,11 +48,11 @@ public class Job {
     private List<String> responsibilities;
 
     @DecimalMin(value = "0.0", message = "Minimum salary must be positive")
-    @Column(name = "Salary_min", precision = 10, scale = 2)
+    @Column(name = "salary_min", precision = 10, scale = 2)
     private BigDecimal salaryMin;
 
-    @DecimalMax(value = "0.0", message = "Minimum salary must be positive")
-    @Column(name = "Salary_max", precision = 10, scale = 2)
+    @DecimalMax(value = "1000000000.0", message = "Maximum salary must not exceed 1,000,000,000") // Added max validation
+    @Column(name = "salary_max", precision = 10, scale = 2)
     private BigDecimal salaryMax;
 
     @NotBlank(message = "Location is required")
@@ -70,11 +68,15 @@ public class Job {
     @Column(name = "experience_level", nullable = false)
     private ExperienceLevel experienceLevel;
 
+    @NotBlank(message = "Industry is required")
+    @Size(max = 100, message = "Industry must not exceed 100 characters")
+    @Column(nullable = false)
+    private String industry;
+
     @ElementCollection
     @CollectionTable(name = "job_skills", joinColumns = @JoinColumn(name = "job_id"))
     @Column(name = "skill")
     private List<String> skills;
-
 
     @ElementCollection
     @CollectionTable(name = "job_benefits", joinColumns = @JoinColumn(name = "job_id"))
@@ -118,14 +120,17 @@ public class Job {
         PART_TIME,
         CONTRACT,
         INTERNSHIP,
-        REMOTE
+        REMOTE, // Added REMOTE
+        TEMPORARY // Added TEMPORARY
     }
 
     public enum ExperienceLevel{
-        ENTRY,
-        MID,
-        SENIOR,
-        EXECUTE
+        ENTRY_LEVEL,
+        ASSOCIATE, // Added ASSOCIATE
+        MID_SENIOR,
+        DIRECTOR, // Added DIRECTOR
+        SENIOR, // Reordered
+        EXECUTIVE
     }
 
     // Helper methods

@@ -1,7 +1,9 @@
 package com.jobwiseai.jobwiseai_backend.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -9,6 +11,8 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class JobResponse {
     private UUID id;
@@ -19,30 +23,28 @@ public class JobResponse {
     private BigDecimal salaryMin;
     private BigDecimal salaryMax;
     private String location;
-    private String jobType;
+    private String employmentType;
     private String experienceLevel;
+    private String industry;
     private List<String> skills;
     private List<String> benefits;
-    private CompanyDto company;
+    private CompanyInfo company;
     private UUID employerId;
     private Boolean isActive;
     private LocalDateTime applicationDeadline;
     private Integer applicationsCount;
     private Integer viewsCount;
-    private LocalDateTime createdAt;
+    private LocalDateTime postedDate;
     private LocalDateTime updatedAt;
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     @Builder
-    public static class CompanyDto {
+    public static class CompanyInfo {
         private UUID id;
         private String name;
-        private String description;
-        private String website;
-        private String logo;
-        private String industry;
-        private String size;
+        private String logoUrl;
         private String location;
-        private Integer foundedYear;
     }
 }

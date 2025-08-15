@@ -7,10 +7,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 import java.util.UUID;
-
 @Repository
 public interface CompanyRepository extends JpaRepository<Company, UUID> {
-
-    Optional<Company> findByEmployer(User employer);
     boolean existsByEmployer(User employer);
+    Optional<Company> findByEmployer(User employer);
 }

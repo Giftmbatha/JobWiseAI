@@ -1,67 +1,93 @@
 package com.jobwiseai.jobwiseai_backend.service;
 
 import com.jobwiseai.jobwiseai_backend.dto.CompanyCreateRequest;
-import com.jobwiseai.jobwiseai_backend.exception.ResourceAlreadyExistsException;
-import com.jobwiseai.jobwiseai_backend.exception.ResourceNotFoundException;
-import com.jobwiseai.jobwiseai_backend.exception.UnauthorizedException;
-import com.jobwiseai.jobwiseai_backend.model.Company;
 import com.jobwiseai.jobwiseai_backend.model.User;
-import com.jobwiseai.jobwiseai_backend.repository.CompanyRepository;
 import com.jobwiseai.jobwiseai_backend.repository.UserRepository;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+@AllArgsConstructor
 public class CompanyService {
 
-    private final CompanyRepository companyRepository;
     private final UserRepository userRepository;
 
-    @Transactional
-    public Company createCompany(CompanyCreateRequest request, UUID employerId) {
-        log.info("Creating company for employer ID: {}", employerId);
-
+    // Get company details for an employer
+    public CompanyCreateRequest getCompanyByEmployer(UUID employerId) {
         User employer = userRepository.findById(employerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Employer not found"));
+                .orElseThrow(() -> new RuntimeException("Employer not found"));
 
         if (employer.getUserType() != User.UserType.EMPLOYER) {
-            throw new UnauthorizedException("Only employers can create companies");
+            throw new RuntimeException("User is not an employer");
         }
 
-        if (companyRepository.existsByEmployer(employer)) {
-            throw new ResourceAlreadyExistsException("Company already exists for this employer");
-        }
+        return new CompanyCreateRequest(
+                employer.getCompanyName(),
+                employer.getCompanyDescription(),
+                employer.getCompanyWebsite(),
+                employer.getCompanyLogo(),
+                employer.getCompanyIndustry(),
+                employer.getCompanySize(),
+                employer.getCompanyLocation(),
+                employer.getCompanyFoundedYear()
 
-        Company company = Company.builder()
-                .name(request.getName())
-                .description(request.getDescription())
-                .website(request.getWebsite())
-                .logo(request.getLogo())
-                .industry(request.getIndustry())
-                .size(request.getSize())
-                .location(request.getLocation())
-                .foundedYear(request.getFoundedYear())
-                .employer(employer)
-                .build();
-
-        company = companyRepository.save(company);
-        log.info("Company created successfully with ID: {}", company.getId());
-
-        return company;
+        );
     }
 
-    @Transactional(readOnly = true)
-    public Company getCompanyByEmployer(UUID employerId) {
+    // Create company (store fields inside User)
+    public CompanyCreateRequest createCompany(UUID employerId, CompanyCreateRequest request) {
         User employer = userRepository.findById(employerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Employer not found"));
+                .orElseThrow(() -> new RuntimeException("Employer not found"));
 
-        return companyRepository.findByEmployer(employer)
-                .orElseThrow(() -> new ResourceNotFoundException("Company not found for this employer"));
+        if (employer.getUserType() != User.UserType.EMPLOYER) {
+            throw new RuntimeException("User is not an employer");
+        }
+
+        // Check if company fields already exist
+        if (employer.getCompanyName() != null) {
+            throw new RuntimeException("Company already exists for this employer");
+        }
+
+        // Save company fields in User
+        employer.setCompanyName(request.getCompanyName());
+        employer.setCompanyDescription(request.getCompanyDescription());
+        employer.setCompanyWebsite(request.getCompanyWebsite());
+        employer.setCompanyIndustry(request.getCompanyIndustry());
+        employer.setCompanySize(request.getCompanySize());
+        employer.setCompanyLocation(request.getCompanyLocation());
+        employer.setCompanyFoundedYear(request.getCompanyFoundedYear());
+        employer.setCompanyLogo(request.getCompanyLogo());
+
+        userRepository.save(employer);
+
+        return request;
+    }
+
+    // Update company fields for an employer
+    public CompanyCreateRequest updateCompany(UUID employerId, CompanyCreateRequest request) {
+        User employer = userRepository.findById(employerId)
+                .orElseThrow(() -> new RuntimeException("Employer not found"));
+
+        if (employer.getUserType() != User.UserType.EMPLOYER) {
+            throw new RuntimeException("User is not an employer");
+        }
+
+        // Update company fields
+        employer.setCompanyName(request.getCompanyName());
+        employer.setCompanyDescription(request.getCompanyDescription());
+        employer.setCompanyWebsite(request.getCompanyWebsite());
+        employer.setCompanyIndustry(request.getCompanyIndustry());
+        employer.setCompanySize(request.getCompanySize());
+        employer.setCompanyLocation(request.getCompanyLocation());
+        employer.setCompanyFoundedYear(request.getCompanyFoundedYear());
+        employer.setCompanyLogo(request.getCompanyLogo());
+
+        userRepository.save(employer);
+
+        return request;
     }
 }

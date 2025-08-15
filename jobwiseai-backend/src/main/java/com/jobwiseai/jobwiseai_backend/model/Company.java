@@ -25,33 +25,33 @@ public class Company {
     @NotBlank(message = "Company name is required")
     @Size(max = 200, message = "Company name must not exceed 200 characters")
     @Column(nullable = false)
-    private String name;
+    private String CompanyName;
 
     @Column(columnDefinition = "TEXT")
-    private String description;
+    private String CompanyDescription;
 
     @Size(max = 255, message = "Website URL must not exceed 255 characters")
-    private String website;
+    private String CompanyWebsite;
 
     @Size(max = 255, message = "Logo URL must not exceed 255 characters")
-    private String logo;
+    private String CompanyLogo;
 
     @Size(max = 100, message = "Industry must not exceed 100 characters")
-    private String industry;
+    private String CompanyIndustry;
 
     @Size(max = 50, message = "Company size must not exceed 50 characters")
-    private String size;
+    private String CompanySize;
 
     @Size(max = 100, message = "Location must not exceed 100 characters")
-    private String location;
+    private String CompanyLocation;
 
     @Min(value = 1800, message = "Founded year must be valid")
     @Max(value = 2100, message = "Founded year must be valid")
     @Column(name = "founded_year")
-    private Integer foundedYear;
+    private Integer CompanyFoundedYear;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "employer_id", nullable = false)
+    @JoinColumn(name = "employer_id", nullable = false, unique = true) // enforce one company per employer
     private User employer;
 
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
