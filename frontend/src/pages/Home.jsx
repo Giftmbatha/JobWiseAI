@@ -1,6 +1,6 @@
 // src/pages/Home.jsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   Container,
@@ -15,6 +15,9 @@ import {
   InputAdornment,
   Alert,
   CircularProgress,
+  Paper,
+  Tabs,
+  Tab
 } from '@mui/material';
 import {
   Search,
@@ -22,115 +25,82 @@ import {
   Business,
   AttachMoney,
   Schedule,
+  PlayCircle,
+  CheckCircle,
+  TrendingUp,
+  Groups
 } from '@mui/icons-material';
+import HomeNavbar from '../components/HomeNavbar';
 
 const Home = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [location, setLocation] = useState('');
-  const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [tabValue, setTabValue] = useState(0);
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  // Mock job data - in Week 2 we'll replace this with real API calls
-  const mockJobs = [
-    {
-      id: 1,
-      title: 'Senior Frontend Developer',
-      company: 'TechCorp Inc.',
-      location: 'San Francisco, CA',
-      salary: '$120,000 - $150,000',
-      type: 'Full-time',
-      posted: '2 days ago',
-      description: 'We are looking for an experienced React developer to join our growing team.',
-      skills: ['React', 'TypeScript', 'Node.js', 'CSS']
-    },
-    {
-      id: 2,
-      title: 'Data Scientist',
-      company: 'DataFlow Analytics',
-      location: 'New York, NY',
-      salary: '$100,000 - $130,000',
-      type: 'Full-time',
-      posted: '1 week ago',
-      description: 'Join our data team to build innovative machine learning solutions.',
-      skills: ['Python', 'Machine Learning', 'SQL', 'TensorFlow']
-    },
-    {
-      id: 3,
-      title: 'UX/UI Designer',
-      company: 'CreativeMinds',
-      location: 'Remote',
-      salary: '$80,000 - $100,000',
-      type: 'Contract',
-      posted: '3 days ago',
-      description: 'Design beautiful and intuitive user interfaces for our products.',
-      skills: ['Figma', 'UI/UX', 'Prototyping', 'User Research']
-    },
-    {
-      id: 4,
-      title: 'Backend Engineer',
-      company: 'CloudSystems',
-      location: 'Austin, TX',
-      salary: '$110,000 - $140,000',
-      type: 'Full-time',
-      posted: 'Just now',
-      description: 'Build scalable backend systems using modern technologies.',
-      skills: ['Java', 'Spring Boot', 'AWS', 'Microservices']
-    },
-    {
-      id: 5,
-      title: 'Product Manager',
-      company: 'InnovateTech',
-      location: 'Boston, MA',
-      salary: '$90,000 - $120,000',
-      type: 'Full-time',
-      posted: '5 days ago',
-      description: 'Lead product development and work with cross-functional teams.',
-      skills: ['Product Management', 'Agile', 'JIRA', 'Strategy']
-    },
-    {
-      id: 6,
-      title: 'DevOps Engineer',
-      company: 'InfraSolutions',
-      location: 'Remote',
-      salary: '$100,000 - $130,000',
-      type: 'Full-time',
-      posted: '2 weeks ago',
-      description: 'Manage our cloud infrastructure and deployment pipelines.',
-      skills: ['Docker', 'Kubernetes', 'CI/CD', 'AWS']
-    }
-  ];
-
-  useEffect(() => {
-    // Simulate API loading
-    const timer = setTimeout(() => {
-      setJobs(mockJobs);
-      setLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    // Filter jobs based on search - will be replaced with real search in Week 2
-    const filteredJobs = mockJobs.filter(job =>
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.skills.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-    setJobs(filteredJobs);
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
   };
 
   const handleGetStarted = () => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    } else if (tabValue === 0) {
+      navigate('/register');
+    } else {
+      navigate('/register/employer');
+    }
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
     if (isAuthenticated) {
       navigate('/dashboard');
     } else {
       navigate('/register');
     }
   };
+
+  // Mock job data for demo
+  const mockJobs = [
+    {
+      id: 1,
+      title: 'Senior Software Developer',
+      company: 'TechCorp SA',
+      location: 'Johannesburg',
+      salary: 'R60,000 - R80,000',
+      type: 'Full-time',
+      posted: '2 days ago',
+      description: 'Build innovative software solutions with modern technologies.',
+      skills: ['React', 'Node.js', 'Python', 'AWS'],
+      remote: true
+    },
+    {
+      id: 2,
+      title: 'Data Scientist',
+      company: 'DataFlow Analytics',
+      location: 'Cape Town',
+      salary: 'R55,000 - R75,000',
+      type: 'Full-time',
+      posted: '1 week ago',
+      description: 'Analyze complex datasets and build machine learning models.',
+      skills: ['Python', 'ML', 'SQL', 'TensorFlow'],
+      remote: false
+    },
+    {
+      id: 3,
+      title: 'UX/UI Designer',
+      company: 'CreativeMinds',
+      location: 'Remote',
+      salary: 'R45,000 - R65,000',
+      type: 'Contract',
+      posted: '3 days ago',
+      description: 'Design beautiful user interfaces for digital products.',
+      skills: ['Figma', 'UI/UX', 'Prototyping'],
+      remote: true
+    }
+  ];
 
   const JobCard = ({ job }) => (
     <Card sx={{ 
@@ -144,43 +114,44 @@ const Home = () => {
       borderRadius: 2,
     }}>
       <CardContent sx={{ p: 3 }}>
-        <Typography variant="h6" sx={{ color: 'primary.main', mb: 1, fontWeight: 'bold' }}>
+        <Typography variant="h6" sx={{ color: '#1D503A', mb: 1, fontWeight: 'bold' }}>
           {job.title}
         </Typography>
         
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          <Business sx={{ fontSize: 16, color: 'neutral.main', mr: 1 }} />
-          <Typography variant="body2" sx={{ color: 'neutral.main' }}>
+          <Business sx={{ fontSize: 16, color: '#484848', mr: 1 }} />
+          <Typography variant="body2" sx={{ color: '#484848' }}>
             {job.company}
           </Typography>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          <LocationOn sx={{ fontSize: 16, color: 'neutral.main', mr: 1 }} />
-          <Typography variant="body2" sx={{ color: 'neutral.main' }}>
+          <LocationOn sx={{ fontSize: 16, color: '#484848', mr: 1 }} />
+          <Typography variant="body2" sx={{ color: '#484848' }}>
             {job.location}
+            {job.remote && ' • Remote'}
           </Typography>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <AttachMoney sx={{ fontSize: 16, color: 'neutral.main', mr: 1 }} />
-          <Typography variant="body2" sx={{ color: 'neutral.main' }}>
+          <AttachMoney sx={{ fontSize: 16, color: '#484848', mr: 1 }} />
+          <Typography variant="body2" sx={{ color: '#484848' }}>
             {job.salary}
           </Typography>
           <Box sx={{ ml: 2, display: 'flex', alignItems: 'center' }}>
-            <Schedule sx={{ fontSize: 16, color: 'neutral.main', mr: 1 }} />
-            <Typography variant="body2" sx={{ color: 'neutral.main' }}>
+            <Schedule sx={{ fontSize: 16, color: '#484848', mr: 1 }} />
+            <Typography variant="body2" sx={{ color: '#484848' }}>
               {job.type}
             </Typography>
           </Box>
         </Box>
 
-        <Typography variant="body2" sx={{ color: 'neutral.main', mb: 2, lineHeight: 1.4 }}>
+        <Typography variant="body2" sx={{ color: '#484848', mb: 2, lineHeight: 1.4 }}>
           {job.description}
         </Typography>
 
         <Box sx={{ mb: 2 }}>
-          {job.skills.slice(0, 4).map((skill, index) => (
+          {job.skills.map((skill, index) => (
             <Chip
               key={index}
               label={skill}
@@ -197,7 +168,7 @@ const Home = () => {
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="caption" sx={{ color: 'neutral.main', opacity: 0.7 }}>
+          <Typography variant="caption" sx={{ color: '#484848', opacity: 0.7 }}>
             Posted {job.posted}
           </Typography>
           <Button
@@ -220,98 +191,146 @@ const Home = () => {
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#FAF5EE' }}>
+      <HomeNavbar />
+      
       {/* Hero Section */}
       <Box sx={{ 
         backgroundColor: '#1D503A', 
         color: 'white', 
-        py: 8,
+        py: { xs: 8, md: 12 },
         background: 'linear-gradient(135deg, #1D503A 0%, #2D6B52 100%)'
       }}>
         <Container maxWidth="lg">
           <Box sx={{ textAlign: 'center', mb: 6 }}>
-            <Typography variant="h2" sx={{ fontWeight: 'bold', mb: 2 }}>
+            <Typography variant="h2" sx={{ fontWeight: 'bold', mb: 2, fontSize: { xs: '2.5rem', md: '3.5rem' } }}>
               Find Your Dream Job with AI
             </Typography>
-            <Typography variant="h5" sx={{ opacity: 0.9, mb: 4 }}>
-              Let our AI match you with perfect opportunities based on your skills and preferences
+            <Typography variant="h5" sx={{ opacity: 0.9, mb: 4, fontSize: { xs: '1.1rem', md: '1.5rem' } }}>
+              Intelligent job matching powered by artificial intelligence
             </Typography>
             
-            <Box component="form" onSubmit={handleSearch} sx={{ maxWidth: 600, mx: 'auto' }}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={5}>
-                  <TextField
-                    fullWidth
-                    placeholder="Job title, skills, or company"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Search sx={{ color: '#1D503A' }} />
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={{
-                      backgroundColor: 'white',
-                      borderRadius: 1,
-                      '& .MuiOutlinedInput-root': {
+            {/* Role Selection Tabs */}
+            <Paper sx={{ 
+              maxWidth: 500, 
+              mx: 'auto', 
+              mb: 4, 
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(10px)'
+            }}>
+              <Tabs
+                value={tabValue}
+                onChange={handleTabChange}
+                centered
+                sx={{
+                  '& .MuiTab-root': { color: 'white', opacity: 0.7 },
+                  '& .Mui-selected': { color: 'white', opacity: 1, fontWeight: 'bold' },
+                }}
+              >
+                <Tab label="I'm a Job Seeker" />
+                <Tab label="I'm an Employer" />
+              </Tabs>
+            </Paper>
+
+            {tabValue === 0 ? (
+              <Box component="form" onSubmit={handleSearch} sx={{ maxWidth: 600, mx: 'auto' }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      placeholder="Job title, skills, or company"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Search sx={{ color: '#1D503A' }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        backgroundColor: 'white',
                         borderRadius: 1,
-                      }
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    placeholder="Location"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <LocationOn sx={{ color: '#1D503A' }} />
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={{
-                      backgroundColor: 'white',
-                      borderRadius: 1,
-                      '& .MuiOutlinedInput-root': {
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 1,
+                        }
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      placeholder="Location"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <LocationOn sx={{ color: '#1D503A' }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        backgroundColor: 'white',
                         borderRadius: 1,
-                      }
-                    }}
-                  />
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 1,
+                        }
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={2}>
+                    <Button
+                      type="submit"
+                      fullWidth
+                      variant="contained"
+                      size="large"
+                      sx={{
+                        backgroundColor: '#FAF5EE',
+                        color: '#1D503A',
+                        '&:hover': {
+                          backgroundColor: '#e8e0d5',
+                        },
+                        fontWeight: 'bold',
+                        height: '56px',
+                        borderRadius: 1,
+                      }}
+                    >
+                      Search
+                    </Button>
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} md={3}>
-                  <Button
-                    type="submit"
-                    fullWidth
-                    variant="contained"
-                    size="large"
-                    sx={{
-                      backgroundColor: '#FAF5EE',
-                      color: '#1D503A',
-                      '&:hover': {
-                        backgroundColor: '#e8e0d5',
-                      },
-                      fontWeight: 'bold',
-                      height: '56px',
-                      borderRadius: 1,
-                    }}
-                  >
-                    Search Jobs
-                  </Button>
-                </Grid>
-              </Grid>
-            </Box>
+              </Box>
+            ) : (
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="h6" sx={{ mb: 3, opacity: 0.9 }}>
+                  Ready to find the perfect candidates for your company?
+                </Typography>
+                <Button
+                  variant="contained"
+                  size="large"
+                  onClick={handleGetStarted}
+                  sx={{
+                    backgroundColor: '#FAF5EE',
+                    color: '#1D503A',
+                    '&:hover': { backgroundColor: '#e8e0d5' },
+                    px: 4,
+                    py: 1.5,
+                    fontWeight: 'bold',
+                    fontSize: '1.1rem',
+                  }}
+                >
+                  Start Posting Jobs
+                </Button>
+              </Box>
+            )}
           </Box>
         </Container>
       </Box>
 
       {/* Stats Section */}
-      <Container maxWidth="lg" sx={{ py: 6 }}>
-        <Grid container spacing={4} sx={{ textAlign: 'center', mb: 6 }}>
-          <Grid item xs={12} md={4}>
+      <Container maxWidth="lg" sx={{ py: 8 }}>
+        <Grid container spacing={4} sx={{ textAlign: 'center', mb: 8 }}>
+          <Grid item xs={6} md={3}>
             <Typography variant="h3" sx={{ color: '#1D503A', fontWeight: 'bold', mb: 1 }}>
               10K+
             </Typography>
@@ -319,7 +338,7 @@ const Home = () => {
               Available Jobs
             </Typography>
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={6} md={3}>
             <Typography variant="h3" sx={{ color: '#1D503A', fontWeight: 'bold', mb: 1 }}>
               95%
             </Typography>
@@ -327,7 +346,7 @@ const Home = () => {
               Match Accuracy
             </Typography>
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={6} md={3}>
             <Typography variant="h3" sx={{ color: '#1D503A', fontWeight: 'bold', mb: 1 }}>
               24h
             </Typography>
@@ -335,91 +354,212 @@ const Home = () => {
               Average Hire Time
             </Typography>
           </Grid>
+          <Grid item xs={6} md={3}>
+            <Typography variant="h3" sx={{ color: '#1D503A', fontWeight: 'bold', mb: 1 }}>
+              500+
+            </Typography>
+            <Typography variant="h6" sx={{ color: '#484848' }}>
+              Companies
+            </Typography>
+          </Grid>
         </Grid>
 
-        {/* Jobs Section */}
-        <Box>
-          <Typography variant="h4" sx={{ 
-            color: '#1D503A', 
-            fontWeight: 'bold', 
-            mb: 4, 
-            textAlign: 'center' 
-          }}>
-            Featured Jobs
+        {/* How It Works Section */}
+        <Box id="how-it-works" sx={{ mb: 8 }}>
+          <Typography variant="h3" sx={{ color: '#1D503A', fontWeight: 'bold', mb: 2, textAlign: 'center' }}>
+            How It Works
+          </Typography>
+          <Typography variant="h6" sx={{ color: '#484848', mb: 6, textAlign: 'center' }}>
+            Simple steps to your next career opportunity
           </Typography>
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {error}
-            </Alert>
-          )}
-
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-              <CircularProgress sx={{ color: '#1D503A' }} />
-            </Box>
-          ) : (
-            <Grid container spacing={3}>
-              {jobs.map((job) => (
-                <Grid item xs={12} md={6} lg={4} key={job.id}>
-                  <JobCard job={job} />
-                </Grid>
-              ))}
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={4}>
+              <Box sx={{ textAlign: 'center', p: 3 }}>
+                <Box sx={{ fontSize: 48, color: '#1D503A', mb: 2 }}>1</Box>
+                <PlayCircle sx={{ fontSize: 60, color: '#1D503A', mb: 2 }} />
+                <Typography variant="h5" sx={{ color: '#1D503A', mb: 2 }}>
+                  Create Profile
+                </Typography>
+                <Typography sx={{ color: '#484848' }}>
+                  Sign up and upload your resume. Our AI will analyze your skills and experience.
+                </Typography>
+              </Box>
             </Grid>
-          )}
-
-          {jobs.length === 0 && !loading && (
-            <Box sx={{ textAlign: 'center', py: 8 }}>
-              <Typography variant="h6" sx={{ color: '#484848', mb: 2 }}>
-                No jobs found matching your criteria
-              </Typography>
-              <Button
-                variant="contained"
-                onClick={() => {
-                  setSearchTerm('');
-                  setLocation('');
-                  setJobs(mockJobs);
-                }}
-                sx={{
-                  backgroundColor: '#1D503A',
-                  '&:hover': { backgroundColor: '#16412e' }
-                }}
-              >
-                Clear Filters
-              </Button>
-            </Box>
-          )}
+            <Grid item xs={12} md={4}>
+              <Box sx={{ textAlign: 'center', p: 3 }}>
+                <Box sx={{ fontSize: 48, color: '#1D503A', mb: 2 }}>2</Box>
+                <TrendingUp sx={{ fontSize: 60, color: '#1D503A', mb: 2 }} />
+                <Typography variant="h5" sx={{ color: '#1D503A', mb: 2 }}>
+                  Get Matched
+                </Typography>
+                <Typography sx={{ color: '#484848' }}>
+                  Receive personalized job recommendations based on your profile.
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Box sx={{ textAlign: 'center', p: 3 }}>
+                <Box sx={{ fontSize: 48, color: '#1D503A', mb: 2 }}>3</Box>
+                <CheckCircle sx={{ fontSize: 60, color: '#1D503A', mb: 2 }} />
+                <Typography variant="h5" sx={{ color: '#1D503A', mb: 2 }}>
+                  Apply & Succeed
+                </Typography>
+                <Typography sx={{ color: '#484848' }}>
+                  Apply to perfect matches and land your dream job faster.
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
         </Box>
 
-        {/* CTA Section */}
+        {/* For Employers Section */}
+        <Box id="employers" sx={{ mb: 8 }}>
+          <Typography variant="h3" sx={{ color: '#1D503A', fontWeight: 'bold', mb: 2, textAlign: 'center' }}>
+            For Employers
+          </Typography>
+          <Typography variant="h6" sx={{ color: '#484848', mb: 6, textAlign: 'center' }}>
+            Find the perfect candidates with AI-powered matching
+          </Typography>
+
+          <Grid container spacing={4} alignItems="center">
+            <Grid item xs={12} md={6}>
+              <Box sx={{ textAlign: 'center' }}>
+                <Groups sx={{ fontSize: 120, color: '#1D503A', mb: 2 }} />
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Box sx={{ p: 3 }}>
+                <Typography variant="h5" sx={{ color: '#1D503A', mb: 2 }}>
+                  Smart Candidate Matching
+                </Typography>
+                <Typography sx={{ color: '#484848', mb: 3 }}>
+                  Our AI algorithm analyzes resumes and job requirements to find the perfect matches, saving you time and improving hire quality.
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <CheckCircle sx={{ color: '#1D503A', mr: 2 }} />
+                    <Typography>AI-powered candidate matching</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <CheckCircle sx={{ color: '#1D503A', mr: 2 }} />
+                    <Typography>Automated resume screening</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <CheckCircle sx={{ color: '#1D503A', mr: 2 }} />
+                    <Typography>Skills-based candidate ranking</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <CheckCircle sx={{ color: '#1D503A', mr: 2 }} />
+                    <Typography>Diverse talent pool access</Typography>
+                  </Box>
+                </Box>
+                <Button
+                  variant="contained"
+                  size="large"
+                  onClick={() => navigate('/register/employer')}
+                  sx={{
+                    mt: 3,
+                    backgroundColor: '#1D503A',
+                    '&:hover': { backgroundColor: '#16412e' },
+                    px: 4,
+                    py: 1.5,
+                    fontWeight: 'bold',
+                  }}
+                >
+                  Start Hiring Now
+                </Button>
+              </Box>
+            </Grid>
+          </Grid>
+        </Box>
+
+        {/* Jobs Preview Section */}
+        <Box id="jobs">
+          <Typography variant="h3" sx={{ color: '#1D503A', fontWeight: 'bold', mb: 2, textAlign: 'center' }}>
+            Latest Job Opportunities
+          </Typography>
+          <Typography variant="h6" sx={{ color: '#484848', mb: 6, textAlign: 'center' }}>
+            Discover your next career move
+          </Typography>
+
+          <Grid container spacing={3}>
+            {mockJobs.map((job) => (
+              <Grid item xs={12} md={4} key={job.id}>
+                <JobCard job={job} />
+              </Grid>
+            ))}
+          </Grid>
+
+          <Box sx={{ textAlign: 'center', mt: 6 }}>
+            <Button
+              variant="contained"
+              size="large"
+              onClick={handleGetStarted}
+              sx={{
+                backgroundColor: '#1D503A',
+                '&:hover': { backgroundColor: '#16412e' },
+                px: 4,
+                py: 1.5,
+                fontWeight: 'bold',
+                fontSize: '1.1rem',
+              }}
+            >
+              View All Jobs
+            </Button>
+          </Box>
+        </Box>
+
+        {/* Final CTA Section */}
         <Box sx={{ 
           textAlign: 'center', 
           py: 8,
-          mt: 6,
+          mt: 8,
           backgroundColor: 'rgba(29, 80, 58, 0.05)',
           borderRadius: 2,
         }}>
           <Typography variant="h3" sx={{ color: '#1D503A', fontWeight: 'bold', mb: 2 }}>
-            Ready to Find Your Perfect Job?
+            Ready to Transform Your Career?
           </Typography>
           <Typography variant="h6" sx={{ color: '#484848', mb: 4, maxWidth: 600, mx: 'auto' }}>
-            Join thousands of job seekers who found their dream career through JobWiseAI
+            Join thousands of job seekers and employers who found success with JobWiseAI
           </Typography>
-          <Button
-            variant="contained"
-            size="large"
-            onClick={handleGetStarted}
-            sx={{
-              backgroundColor: '#1D503A',
-              '&:hover': { backgroundColor: '#16412e' },
-              px: 4,
-              py: 1.5,
-              fontWeight: 'bold',
-              fontSize: '1.1rem',
-            }}
-          >
-            Get Started Free
-          </Button>
+          <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Button
+              variant="contained"
+              size="large"
+              onClick={() => navigate('/register')}
+              sx={{
+                backgroundColor: '#1D503A',
+                '&:hover': { backgroundColor: '#16412e' },
+                px: 4,
+                py: 1.5,
+                fontWeight: 'bold',
+                fontSize: '1.1rem',
+              }}
+            >
+              Find Your Dream Job
+            </Button>
+            <Button
+              variant="outlined"
+              size="large"
+              onClick={() => navigate('/register/employer')}
+              sx={{
+                borderColor: '#1D503A',
+                color: '#1D503A',
+                '&:hover': { 
+                  borderColor: '#16412e',
+                  backgroundColor: 'rgba(29, 80, 58, 0.04)'
+                },
+                px: 4,
+                py: 1.5,
+                fontWeight: 'bold',
+                fontSize: '1.1rem',
+              }}
+            >
+              Post Jobs Now
+            </Button>
+          </Box>
         </Box>
       </Container>
     </Box>
