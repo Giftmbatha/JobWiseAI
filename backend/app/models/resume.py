@@ -24,13 +24,19 @@ class Resume(Base):
     # Relationship
     user = relationship("User", back_populates="resumes")
     
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "filename": self.filename,
-            "file_type": self.file_type,
-            "skills": json.loads(self.skills) if self.skills else [],
-            "experience": json.loads(self.experience) if self.experience else [],
-            "education": json.loads(self.education) if self.education else [],
-            "created_at": self.created_at.isoformat(),
-        }
+
+def to_dict(self):
+    # Parse JSON strings back to Python objects
+    skills_data = json.loads(self.skills) if self.skills else []
+    experience_data = json.loads(self.experience) if self.experience else []
+    education_data = json.loads(self.education) if self.education else []
+    
+    return {
+        "id": self.id,
+        "filename": self.filename,
+        "file_type": self.file_type,
+        "skills": skills_data,
+        "experience": experience_data,
+        "education": education_data,
+        "created_at": self.created_at.isoformat(),
+    }
