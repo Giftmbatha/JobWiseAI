@@ -1,5 +1,6 @@
 # app/models/job.py
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, Float
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, Float, ForeignKey
+from sqlalchemy.orm import relationship
 from app.database import Base
 from datetime import datetime
 import json
@@ -43,3 +44,8 @@ class Job(Base):
             "company_logo": self.company_logo,
             "created_at": self.created_at.isoformat(),
         }
+        
+    
+    # Add employer relationship
+    employer_id = Column(Integer, ForeignKey("users.id"))
+    employer = relationship("User", back_populates="jobs")

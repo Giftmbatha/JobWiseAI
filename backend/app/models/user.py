@@ -1,4 +1,4 @@
-# app/models/user.py
+# app/models/user.py - Remove enum and use String instead
 from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -10,6 +10,7 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=True)
     full_name = Column(String)
+    role = Column(String, default="JOB_SEEKER")  # Simple string, no enum
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
     google_id = Column(String, unique=True, nullable=True)
@@ -17,3 +18,4 @@ class User(Base):
     
     # Relationships
     resumes = relationship("Resume", back_populates="user")
+    jobs = relationship("Job", back_populates="employer")

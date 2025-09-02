@@ -28,12 +28,22 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
     return encoded_jwt
 
+# app/utils/auth.py - Check token expiration
 def decode_access_token(token: str):
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
         email: str = payload.get("sub")
-        if email is None:
-            return None
-        return email
-    except JWTError:
-        return None
+        role: str = payload.get("role", "JOB_SEEKER")
+        exp: int = payload.get("exp")
+        
+        # Check if token is expired
+        from datetime import datetime
+        if exp and datetime.utcnow() > datetime.fromtimestamp(exp):
+            print("❌ Token expired")
+            return None, None
+            
+        print(f"✅ Token valid - Email: {email}, Role: {role}, Exp: {exp}")
+        return email, role
+    except JWTError as e:
+        print(f"❌ Token decode failed: {e}")
+        return None, None

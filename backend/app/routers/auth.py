@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.user import User
 from app.utils.dependencies import get_current_user
-from app.schemas.user import UserCreate, UserResponse, Token, UserCreateGoogle
+from app.schemas.user import UserCreate, UserResponse, Token, EmployerCreate
 from app.utils.auth import verify_password, get_password_hash, create_access_token
 from app.utils.oauth import oauth
 from app.config import settings
@@ -29,7 +29,7 @@ def get_or_create_user(db: Session, email: str, full_name: str = None):
     return user
 
 # app/routers/auth.py
-@router.post("/register", response_model=UserResponse)  # Use UserResponse instead of UserInDB
+@router.post("/register", response_model=UserResponse)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
     # Check if user already exists
     db_user = db.query(User).filter(User.email == user_data.email).first()
@@ -39,21 +39,22 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
             detail="Email already registered"
         )
     
-    # Create new user
+    # Create new user with string role
     hashed_password = get_password_hash(user_data.password)
     user = User(
         email=user_data.email,
         full_name=user_data.full_name,
         hashed_password=hashed_password,
+        role="JOB_SEEKER",  # Simple string
         is_active=True
     )
     db.add(user)
     db.commit()
     db.refresh(user)
     
-    # Convert to response model
-    return UserResponse.from_orm(user)  # Use from_orm for Pydantic v1
+    return user # Use from_orm for Pydantic v1
 
+# app/routers/auth.py - Update login endpoint to include role in token
 @router.post("/login", response_model=Token)
 def login(user_data: UserCreate, db: Session = Depends(get_db)):
     # Find user
@@ -71,13 +72,27 @@ def login(user_data: UserCreate, db: Session = Depends(get_db)):
             detail="Incorrect email or password"
         )
     
-    # Create access token
-    access_token = create_access_token(data={"sub": user.email})
+    # Create access token with role information
+    access_token = create_access_token(
+        data={
+            "sub": user.email,
+            "role": user.role if user.role is not None else "JOB_SEEKER"  # Include role in token
+        }
+    )
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.get("/me", response_model=UserResponse)  # Use UserResponse
+# app/routers/auth.py - Update /me endpoint
+@router.get("/me", response_model=UserResponse)
 async def read_users_me(current_user: User = Depends(get_current_user)):
-    return UserResponse.from_orm(current_user)  # Convert ORM object to response model
+    # Manual conversion to ensure proper format
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "full_name": current_user.full_name,
+        "is_active": current_user.is_active,
+        "is_superuser": current_user.is_superuser,
+        "role": current_user.role or "JOB_SEEKER"  # Ensure role is always set
+    }
 
 @router.get("/google")
 async def login_google(request: Request):
@@ -120,3 +135,29 @@ async def auth_google_callback(
     # Create access token
     access_token = create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
+
+# app/routers/auth.py - Fix employer registration
+@router.post("/register/employer", response_model=UserResponse)
+def register_employer(employer_data: EmployerCreate, db: Session = Depends(get_db)):
+    # Check if user already exists
+    db_user = db.query(User).filter(User.email == employer_data.email).first()
+    if db_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+    
+    # Create new employer user with string role
+    hashed_password = get_password_hash(employer_data.password)
+    user = User(
+        email=employer_data.email,
+        full_name=employer_data.full_name,
+        hashed_password=hashed_password,
+        role="EMPLOYER",  # Simple string
+        is_active=True
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    
+    return user
