@@ -6,7 +6,7 @@ import os
 from app.config import settings
 from app.database import engine, Base
 from app import models
-from app.routers import auth, users, resumes, jobs
+from app.routers import auth, users, resumes, jobs, ai_matching
 
 # Create DB tables
 Base.metadata.create_all(bind=engine)
@@ -31,6 +31,7 @@ app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(users.router, prefix="/users", tags=["Users"])
 app.include_router(resumes.router, prefix="/resumes", tags=["Resumes"])
 app.include_router(jobs.router, prefix="/jobs", tags=["Jobs"])
+app.include_router(ai_matching.router, prefix="/ai", tags=["AI Matching"])
 
 @app.get("/")
 def root():

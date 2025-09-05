@@ -62,7 +62,7 @@ def create_job(
 ):
     """Create a new job posting (for employers)"""
     # Check if user is employer (you can add role-based authentication later)
-    if not current_user.is_superuser:
+    if not current_user.role:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only employers can create job postings"
