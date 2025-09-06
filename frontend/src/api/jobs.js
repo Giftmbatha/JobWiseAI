@@ -1,4 +1,3 @@
-// src/api/jobs.js
 import { api } from './auth';
 
 export const jobsAPI = {

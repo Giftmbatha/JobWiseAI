@@ -1,4 +1,3 @@
-// src/api/resumes.js
 import { api } from './auth';
 
 export const resumesAPI = {

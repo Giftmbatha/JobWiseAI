@@ -1,4 +1,3 @@
-// src/components/HomeNavbar.jsx
 import React, { useState } from 'react';
 import {
   AppBar,
