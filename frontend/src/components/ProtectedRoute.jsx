@@ -1,4 +1,3 @@
-// src/components/ProtectedRoute.jsx - Prevent re-renders
 import { useAuth } from '../context/AuthContext';
 import { CircularProgress, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';

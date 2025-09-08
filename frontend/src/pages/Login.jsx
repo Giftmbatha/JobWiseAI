@@ -29,7 +29,7 @@ const Login = () => {
     setTabValue(newValue);
   };
 
-// src/pages/Login.jsx - Simplify by removing manual redirect
+
 const handleSubmit = async (e) => {
   e.preventDefault();
   setLoading(true);

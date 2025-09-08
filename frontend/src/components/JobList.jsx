@@ -42,7 +42,7 @@ const JobsList = () => {
   const fetchJobs = async (page = 1) => {
     setLoading(true);
     try {
-      console.log('🔄 Fetching jobs with params:', {
+      console.log('Fetching jobs with params:', {
         page,
         pageSize: pagination.pageSize,
         searchTerm,
@@ -52,7 +52,7 @@ const JobsList = () => {
       
       const response = await jobsAPI.getJobs(page, pagination.pageSize, searchTerm, location, fetchExternal);
       
-      console.log('✅ Jobs API response:', {
+      console.log('Jobs API response:', {
         data: response.data,
         jobsCount: response.data.jobs?.length,
         totalCount: response.data.total_count
@@ -66,7 +66,7 @@ const JobsList = () => {
         totalPages: Math.ceil(response.data.total_count / pagination.pageSize)
       }));
     } catch (error) {
-      console.error('❌ Error fetching jobs:', error);
+      console.error('Error fetching jobs:', error);
       setError('Failed to fetch jobs');
     } finally {
       setLoading(false);

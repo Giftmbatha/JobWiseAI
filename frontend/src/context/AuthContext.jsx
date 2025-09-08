@@ -1,4 +1,3 @@
-// src/context/AuthContext.jsx - Fix the infinite loop
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from '../api/auth';
 import { useNavigate } from 'react-router-dom';
