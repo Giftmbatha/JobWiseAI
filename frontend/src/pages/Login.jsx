@@ -11,33 +11,40 @@ import {
   Box,
   Alert,
   Divider,
+  Tabs,
+  Tab
 } from '@mui/material';
 import { Google } from '@mui/icons-material';
-
-import { authAPI } from '../api/auth'; // ADD THIS IMPORT
+import { authAPI } from '../api/auth';
 
 const Login = () => {
   const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [tabValue, setTabValue] = useState(0);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      const response = await authAPI.login(credentials);
-      await login(response.data.access_token);
-      navigate('/dashboard');
-    } catch (error) {
-      setError(error.response?.data?.detail || 'Login failed');
-    } finally {
-      setLoading(false);
-    }
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
   };
+
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError('');
+
+  try {
+    const response = await authAPI.login(credentials);
+    await login(response.data.access_token);
+    // The AuthContext will handle the redirection automatically
+  } catch (error) {
+    setError(error.response?.data?.detail || 'Login failed. Please check your credentials.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleGoogleLogin = () => {
     authAPI.googleLogin();
@@ -80,8 +87,36 @@ const Login = () => {
             align="center" 
             sx={{ color: 'neutral.main', mb: 3 }}
           >
-            Sign in to continue your job search
+            Sign in to continue to your dashboard
           </Typography>
+
+          {/* Role Information Tabs */}
+          <Paper sx={{ mb: 3, backgroundColor: 'rgba(29, 80, 58, 0.05)' }}>
+            <Tabs
+              value={tabValue}
+              onChange={handleTabChange}
+              centered
+              sx={{
+                '& .MuiTab-root': { color: '#484848', opacity: 0.7 },
+                '& .Mui-selected': { color: '#1D503A', opacity: 1, fontWeight: 'bold' },
+              }}
+            >
+              <Tab label="Job Seeker Login" />
+              <Tab label="Employer Login" />
+            </Tabs>
+          </Paper>
+
+          {tabValue === 0 && (
+            <Typography variant="body2" align="center" sx={{ color: '#484848', mb: 2, fontStyle: 'italic' }}>
+              Sign in to find your dream job with AI-powered matching
+            </Typography>
+          )}
+          
+          {tabValue === 1 && (
+            <Typography variant="body2" align="center" sx={{ color: '#484848', mb: 2, fontStyle: 'italic' }}>
+              Sign in to manage your job postings and find candidates
+            </Typography>
+          )}
 
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -173,16 +208,63 @@ const Login = () => {
             <Box sx={{ textAlign: 'center', mt: 3 }}>
               <Typography variant="body2" sx={{ color: 'neutral.main' }}>
                 Don't have an account?{' '}
-                <Link 
-                  to="/register" 
-                  style={{ 
-                    color: '#1D503A', 
-                    textDecoration: 'none',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  Sign up
-                </Link>
+                {tabValue === 0 ? (
+                  <Link 
+                    to="/register" 
+                    style={{ 
+                      color: '#1D503A', 
+                      textDecoration: 'none',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    Sign up as Job Seeker
+                  </Link>
+                ) : (
+                  <Link 
+                    to="/register/employer" 
+                    style={{ 
+                      color: '#1D503A', 
+                      textDecoration: 'none',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    Sign up as Employer
+                  </Link>
+                )}
+              </Typography>
+            </Box>
+
+            <Box sx={{ textAlign: 'center', mt: 2 }}>
+              <Typography variant="body2" sx={{ color: 'neutral.main' }}>
+                {tabValue === 0 ? (
+                  <span>
+                    Are you an employer?{' '}
+                    <Link 
+                      to="/register/employer" 
+                      style={{ 
+                        color: '#1D503A', 
+                        textDecoration: 'none',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Create employer account
+                    </Link>
+                  </span>
+                ) : (
+                  <span>
+                    Looking for a job?{' '}
+                    <Link 
+                      to="/register" 
+                      style={{ 
+                        color: '#1D503A', 
+                        textDecoration: 'none',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Create job seeker account
+                    </Link>
+                  </span>
+                )}
               </Typography>
             </Box>
           </Box>

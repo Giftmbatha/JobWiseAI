@@ -1,9 +1,17 @@
-// src/components/ProtectedRoute.jsx
 import { useAuth } from '../context/AuthContext';
 import { CircularProgress, Box } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate('/login', { replace: true });
+    }
+  }, [isAuthenticated, loading, navigate]);
 
   if (loading) {
     return (
