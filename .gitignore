@@ -1,4 +1,24 @@
-node_modules/
 venv/
 env/
+
+# Node.js
+node_modules/
+npm-debug.log
+
+# Build artifacts
+build/
+dist/
+target/
+
+# Temporary files
+*.tmp
+*.bak
+*.log
+
+# IDE/Editor specific
+.vscode/
+.idea/
+*.DS_Store
+
+# Sensitive files
 .env
