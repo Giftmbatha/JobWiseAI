@@ -1,4 +1,3 @@
-// src/components/JobsList.jsx
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -14,18 +13,20 @@ import {
   CircularProgress,
   Paper,
   FormControlLabel,
-  Checkbox
+  Checkbox,
+  Tooltip
 } from '@mui/material';
 import {
   Business,
   LocationOn,
   AttachMoney,
   Schedule,
-  Search
+  Search,
+  OpenInNew
 } from '@mui/icons-material';
 import { jobsAPI } from '../api/jobs';
 
-const JobsList = () => {
+const JobsList = ({ onApplyClick }) => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -42,22 +43,7 @@ const JobsList = () => {
   const fetchJobs = async (page = 1) => {
     setLoading(true);
     try {
-      console.log('Fetching jobs with params:', {
-        page,
-        pageSize: pagination.pageSize,
-        searchTerm,
-        location,
-        fetchExternal
-      });
-      
       const response = await jobsAPI.getJobs(page, pagination.pageSize, searchTerm, location, fetchExternal);
-      
-      console.log('Jobs API response:', {
-        data: response.data,
-        jobsCount: response.data.jobs?.length,
-        totalCount: response.data.total_count
-      });
-      
       setJobs(response.data.jobs || []);
       setPagination(prev => ({
         ...prev,
@@ -86,97 +72,153 @@ const JobsList = () => {
     fetchJobs(1);
   }, []);
 
-  const JobCard = ({ job }) => (
-    <Card sx={{ 
-      height: '100%', 
-      transition: 'transform 0.2s, box-shadow 0.2s',
-      '&:hover': {
-        transform: 'translateY(-4px)',
-        boxShadow: 4,
-      },
-      border: '1px solid #e0e0e0',
-      borderRadius: 2,
-    }}>
-      <CardContent sx={{ p: 3 }}>
-        <Typography variant="h6" sx={{ color: '#1D503A', mb: 1, fontWeight: 'bold' }}>
-          {job.title}
-        </Typography>
-        
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          <Business sx={{ fontSize: 16, color: '#484848', mr: 1 }} />
-          <Typography variant="body2" sx={{ color: '#484848' }}>
-            {job.company}
-          </Typography>
-        </Box>
+  const getJobBadge = (job) => {
+    if (!job.is_external) return { label: 'Internal', color: 'success' };
+    if (job.source === 'adzuna') return { label: 'Adzuna', color: 'info' };
+    return { label: 'External', color: 'default' };
+  };
 
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          <LocationOn sx={{ fontSize: 16, color: '#484848', mr: 1 }} />
-          <Typography variant="body2" sx={{ color: '#484848' }}>
-            {job.location}
-          </Typography>
-        </Box>
+  const handleJobAction = (job) => {
+    if (job.is_external && job.apply_url) {
+      // Open external job in new tab
+      window.open(job.apply_url, '_blank', 'noopener,noreferrer');
+    } else if (job.is_external && !job.apply_url) {
+      // Show message for external jobs without apply URL
+      alert('This is an external job. Please visit the company website to apply.');
+    } else {
+      // Internal job - open application modal
+      onApplyClick(job);
+    }
+  };
 
-        {(job.salary_min || job.salary_max) && (
+  const getActionButtonText = (job) => {
+    if (job.is_external && job.apply_url) return 'Apply Externally';
+    if (job.is_external && !job.apply_url) return 'External Job';
+    return 'Apply Now';
+  };
+
+  const getActionButtonVariant = (job) => {
+    if (job.is_external && !job.apply_url) return 'outlined';
+    return 'contained';
+  };
+
+  const isActionDisabled = (job) => {
+    return job.is_external && !job.apply_url;
+  };
+
+  const JobCard = ({ job }) => {
+    const badge = getJobBadge(job);
+    
+    return (
+      <Card sx={{ 
+        height: '100%', 
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        '&:hover': {
+          transform: 'translateY(-4px)',
+          boxShadow: 4,
+        },
+        border: '1px solid #e0e0e0',
+        borderRadius: 2,
+      }}>
+        <CardContent sx={{ p: 3 }}>
+          <Chip 
+            label={badge.label} 
+            color={badge.color} 
+            size="small" 
+            sx={{ mb: 1 }}
+          />
+          
+          <Typography variant="h6" sx={{ color: '#1D503A', mb: 1, fontWeight: 'bold' }}>
+            {job.title}
+          </Typography>
+          
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <AttachMoney sx={{ fontSize: 16, color: '#484848', mr: 1 }} />
+            <Business sx={{ fontSize: 16, color: '#484848', mr: 1 }} />
             <Typography variant="body2" sx={{ color: '#484848' }}>
-              {job.salary_min && job.salary_max 
-                ? `R${job.salary_min.toLocaleString()} - R${job.salary_max.toLocaleString()}`
-                : job.salary_min 
-                  ? `From R${job.salary_min.toLocaleString()}`
-                  : `Up to R${job.salary_max.toLocaleString()}`
-              }
+              {job.company}
             </Typography>
           </Box>
-        )}
 
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Schedule sx={{ fontSize: 16, color: '#484848', mr: 1 }} />
-          <Typography variant="body2" sx={{ color: '#484848' }}>
-            {job.job_type}
-            {job.remote && ' • Remote'}
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+            <LocationOn sx={{ fontSize: 16, color: '#484848', mr: 1 }} />
+            <Typography variant="body2" sx={{ color: '#484848' }}>
+              {job.location}
+            </Typography>
+          </Box>
+
+          {(job.salary_min || job.salary_max) && (
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <AttachMoney sx={{ fontSize: 16, color: '#484848', mr: 1 }} />
+              <Typography variant="body2" sx={{ color: '#484848' }}>
+                {job.salary_min && job.salary_max 
+                  ? `R${job.salary_min.toLocaleString()} - R${job.salary_max.toLocaleString()}`
+                  : job.salary_min 
+                    ? `From R${job.salary_min.toLocaleString()}`
+                    : `Up to R${job.salary_max.toLocaleString()}`
+                }
+              </Typography>
+            </Box>
+          )}
+
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            <Schedule sx={{ fontSize: 16, color: '#484848', mr: 1 }} />
+            <Typography variant="body2" sx={{ color: '#484848' }}>
+              {job.job_type}
+              {job.remote && ' • Remote'}
+            </Typography>
+          </Box>
+
+          <Typography variant="body2" sx={{ 
+            color: '#484848', 
+            mb: 2, 
+            lineHeight: 1.4,
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden'
+          }}>
+            {job.description}
           </Typography>
-        </Box>
 
-        <Typography variant="body2" sx={{ 
-          color: '#484848', 
-          mb: 2, 
-          lineHeight: 1.4,
-          display: '-webkit-box',
-          WebkitLineClamp: 3,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden'
-        }}>
-          {job.description}
-        </Typography>
-
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Chip
-            label={job.source?.toUpperCase() || 'INTERNAL'}
-            size="small"
-            sx={{
-              backgroundColor: job.source === 'internal' ? '#1D503A' : '#1976d2',
-              color: 'white',
-              fontSize: '0.7rem',
-            }}
-          />
-          <Button
-            variant="contained"
-            size="small"
-            sx={{
-              backgroundColor: '#1D503A',
-              '&:hover': { backgroundColor: '#16412e' },
-              borderRadius: 1,
-              fontWeight: 'bold',
-            }}
-            onClick={() => window.open(job.apply_url || '#', '_blank')}
-          >
-            Apply Now
-          </Button>
-        </Box>
-      </CardContent>
-    </Card>
-  );
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="caption" sx={{ color: '#666' }}>
+              Posted {new Date(job.created_at).toLocaleDateString()}
+            </Typography>
+            
+            <Tooltip 
+              title={isActionDisabled(job) ? "This external job doesn't have an apply link" : ""}
+            >
+              <span>
+                <Button
+                  variant={getActionButtonVariant(job)}
+                  size="small"
+                  sx={{
+                    backgroundColor: job.is_external ? '#1976d2' : '#1D503A',
+                    '&:hover': { 
+                      backgroundColor: job.is_external ? '#1565c0' : '#16412e' 
+                    },
+                    '&:disabled': {
+                      backgroundColor: '#f5f5f5',
+                      color: '#999',
+                      borderColor: '#ddd'
+                    },
+                    borderRadius: 1,
+                    fontWeight: 'bold',
+                    minWidth: '120px'
+                  }}
+                  onClick={() => handleJobAction(job)}
+                  disabled={isActionDisabled(job)}
+                  endIcon={job.is_external && job.apply_url ? <OpenInNew /> : null}
+                >
+                  {getActionButtonText(job)}
+                </Button>
+              </span>
+            </Tooltip>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  };
 
   if (loading && jobs.length === 0) {
     return (

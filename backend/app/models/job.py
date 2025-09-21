@@ -1,4 +1,3 @@
-# app/models/job.py
 from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, Float, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -16,7 +15,7 @@ class Job(Base):
     requirements = Column(Text)
     salary_min = Column(Float, nullable=True)
     salary_max = Column(Float, nullable=True)
-    salary_currency = Column(String, default="USD")
+    salary_currency = Column(String, default="ZAR")
     job_type = Column(String)  # Full-time, Part-time, Contract, Internship
     remote = Column(Boolean, default=False)
     source = Column(String, default="internal")  # 'internal', 'external', 'adzuna'
@@ -25,6 +24,12 @@ class Job(Base):
     company_logo = Column(String, nullable=True)
     embeddings = Column(Text)  # JSON string of AI embeddings
     created_at = Column(DateTime, default=datetime.utcnow)
+    is_external = Column(Boolean,default=False)
+    
+    # Add employer relationship
+    employer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    employer = relationship("User", back_populates="jobs")
+    applications = relationship("Application", back_populates="job", cascade="all, delete-orphan")
     
     def to_dict(self):
         return {
@@ -44,8 +49,3 @@ class Job(Base):
             "company_logo": self.company_logo,
             "created_at": self.created_at.isoformat(),
         }
-        
-    
-    # Add employer relationship
-    employer_id = Column(Integer, ForeignKey("users.id"))
-    employer = relationship("User", back_populates="jobs")

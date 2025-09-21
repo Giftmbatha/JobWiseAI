@@ -9,9 +9,20 @@ import {
   List,
   ListItem,
   ListItemText,
-  IconButton
+  IconButton,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
-import { CloudUpload, Delete, Description } from '@mui/icons-material';
+import { 
+  CloudUpload, 
+  Delete, 
+  Description, 
+  Visibility,
+  Download 
+} from '@mui/icons-material';
 import { resumesAPI } from '../api/resumes';
 import { useAuth } from '../context/AuthContext';
 
@@ -21,20 +32,29 @@ const ResumeUpload = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [resumes, setResumes] = useState([]);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [selectedResume, setSelectedResume] = useState(null);
   const { user } = useAuth();
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
     if (file) {
-      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      const allowedTypes = [
+        'application/pdf', 
+        'application/msword', 
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+      
       if (!allowedTypes.includes(file.type)) {
         setError('Please select a PDF, DOC, or DOCX file');
         return;
       }
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      
+      if (file.size > 5 * 1024 * 1024) {
         setError('File size must be less than 5MB');
         return;
       }
+      
       setSelectedFile(file);
       setError('');
       setMessage('');
@@ -55,7 +75,7 @@ const ResumeUpload = () => {
       const formData = new FormData();
       formData.append('file', selectedFile);
 
-      const response = await resumesAPI.uploadResume(formData);
+      await resumesAPI.uploadResume(formData);
       setMessage('Resume uploaded successfully!');
       setSelectedFile(null);
       document.getElementById('resume-upload').value = '';
@@ -70,16 +90,10 @@ const ResumeUpload = () => {
   const fetchResumes = async () => {
     try {
       const response = await resumesAPI.getUserResumes();
-      // Parse JSON strings to objects if needed
-      const parsedResumes = response.data.map(resume => ({
-        ...resume,
-        skills: typeof resume.skills === 'string' ? JSON.parse(resume.skills) : resume.skills,
-        experience: typeof resume.experience === 'string' ? JSON.parse(resume.experience) : resume.experience,
-        education: typeof resume.education === 'string' ? JSON.parse(resume.education) : resume.education
-      }));
-      setResumes(parsedResumes);
+      setResumes(response.data);
     } catch (error) {
       console.error('Error fetching resumes:', error);
+      setError('Failed to load resumes');
     }
   };
 
@@ -95,7 +109,35 @@ const ResumeUpload = () => {
     }
   };
 
-  React.useEffect(() => {
+  const handleViewResume = async (resume) => {
+    try {
+      const response = await resumesAPI.getResume(resume.id);
+      setSelectedResume(response.data);
+      setViewDialogOpen(true);
+    } catch (error) {
+      setError('Failed to load resume details');
+    }
+  };
+
+  const handleDownloadResume = async (resumeId, fileName) => {
+    try {
+      const response = await resumesAPI.downloadResume(resumeId);
+      // Create a blob from the response
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      setError('Failed to download resume');
+    }
+  };
+
+  useEffect(() => {
     if (user) {
       fetchResumes();
     }
@@ -156,8 +198,17 @@ const ResumeUpload = () => {
         </Button>
       </Box>
 
-      {message && <Alert severity="success" sx={{ mb: 2 }}>{message}</Alert>}
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {message && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setMessage('')}>
+          {message}
+        </Alert>
+      )}
+      
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
+          {error}
+        </Alert>
+      )}
 
       {resumes.length > 0 && (
         <Box>
@@ -169,19 +220,44 @@ const ResumeUpload = () => {
               <ListItem
                 key={resume.id}
                 secondaryAction={
-                  <IconButton
-                    edge="end"
-                    onClick={() => handleDeleteResume(resume.id)}
-                    sx={{ color: '#d32f2f' }}
-                  >
-                    <Delete />
-                  </IconButton>
+                  <Box>
+                    <IconButton
+                      onClick={() => handleViewResume(resume)}
+                      sx={{ color: '#1D503A' }}
+                      title="View Details"
+                    >
+                      <Visibility />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => handleDownloadResume(resume.id, resume.name)}
+                      sx={{ color: '#1976d2' }}
+                      title="Download"
+                    >
+                      <Download />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => handleDeleteResume(resume.id)}
+                      sx={{ color: '#d32f2f' }}
+                      title="Delete"
+                    >
+                      <Delete />
+                    </IconButton>
+                  </Box>
                 }
               >
                 <Description sx={{ mr: 2, color: '#1D503A' }} />
                 <ListItemText
-                  primary={resume.filename}
-                  secondary={`Uploaded: ${new Date(resume.created_at).toLocaleDateString()} • ${resume.skills?.length || 0} skills extracted`}
+                  primary={resume.name}
+                  secondary={
+                    <Box>
+                      <Typography variant="body2">
+                        Uploaded: {new Date(resume.uploaded_at).toLocaleDateString()}
+                      </Typography>
+                      <Typography variant="body2">
+                        File type: {resume.file_type || 'Unknown'}
+                      </Typography>
+                    </Box>
+                  }
                 />
               </ListItem>
             ))}
@@ -194,6 +270,101 @@ const ResumeUpload = () => {
           No resumes uploaded yet. Upload your first resume to get started!
         </Typography>
       )}
+
+      {/* Resume Details Dialog */}
+      <Dialog 
+        open={viewDialogOpen} 
+        onClose={() => setViewDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Resume Details</DialogTitle>
+        <DialogContent>
+          {selectedResume && (
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                {selectedResume.name}
+              </Typography>
+              
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Skills Extracted:
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {selectedResume.skills && selectedResume.skills.length > 0 ? (
+                    selectedResume.skills.map((skill, index) => (
+                      <Chip
+                        key={index}
+                        label={skill}
+                        size="small"
+                        sx={{ backgroundColor: '#1D503A', color: 'white' }}
+                      />
+                    ))
+                  ) : (
+                    <Typography variant="body2" color="textSecondary">
+                      No skills extracted
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Experience:
+                </Typography>
+                {selectedResume.experience && selectedResume.experience.length > 0 ? (
+                  selectedResume.experience.map((exp, index) => (
+                    <Box key={index} sx={{ mb: 1 }}>
+                      <Typography variant="body2" fontWeight="bold">
+                        {exp.title} at {exp.company}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        {exp.duration}
+                      </Typography>
+                      {exp.description && (
+                        <Typography variant="body2">
+                          {exp.description}
+                        </Typography>
+                      )}
+                    </Box>
+                  ))
+                ) : (
+                  <Typography variant="body2" color="textSecondary">
+                    No experience extracted
+                  </Typography>
+                )}
+              </Box>
+
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Education:
+                </Typography>
+                {selectedResume.education && selectedResume.education.length > 0 ? (
+                  selectedResume.education.map((edu, index) => (
+                    <Box key={index} sx={{ mb: 1 }}>
+                      <Typography variant="body2" fontWeight="bold">
+                        {edu.degree}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        {edu.institution} • {edu.year}
+                      </Typography>
+                    </Box>
+                  ))
+                ) : (
+                  <Typography variant="body2" color="textSecondary">
+                    No education extracted
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setViewDialogOpen(false)}>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 };

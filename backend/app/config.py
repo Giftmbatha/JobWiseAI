@@ -12,5 +12,7 @@ class Settings:
     google_client_id: str = os.getenv("GOOGLE_CLIENT_ID", "")
     google_client_secret: str = os.getenv("GOOGLE_CLIENT_SECRET", "")
     frontend_url: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    adzuna_app_id: str = os.getenv("ADZUNA_APP_ID", "")
+    adzuna_app_key: str = os.getenv("ADZUNA_APP_KEY", "")
 
 settings = Settings()

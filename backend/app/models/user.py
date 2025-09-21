@@ -1,4 +1,3 @@
-# app/models/user.py - Remove enum and use String instead
 from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -19,3 +18,4 @@ class User(Base):
     # Relationships
     resumes = relationship("Resume", back_populates="user")
     jobs = relationship("Job", back_populates="employer")
+    applications = relationship("Application", back_populates="user")

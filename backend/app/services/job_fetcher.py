@@ -1,4 +1,3 @@
-# app/services/job_fetcher.py
 import requests
 import os
 from typing import List, Dict, Any
@@ -17,18 +16,18 @@ class AdzunaJobFetcher:
         db: Session = None
     ) -> List[Dict[str, Any]]:
         """Fetch jobs from Adzuna API and store in database"""
-        app_id = os.getenv("ADZUNA_APP_ID")
-        app_key = os.getenv("ADZUNA_APP_KEY")
+        adzuna_app_id = os.getenv("ADZUNA_APP_ID")
+        adzuna_app_key = os.getenv("ADZUNA_APP_KEY")
         
-        if not app_id or not app_key:
+        if not adzuna_app_id or not adzuna_app_key:
             print("Adzuna API credentials not found")
             return []
         
         try:
             url = f"{AdzunaJobFetcher.BASE_URL}/{location}/search/1"
             params = {
-                "app_id": app_id,
-                "app_key": app_key,
+                "app_id": adzuna_app_id,
+                "app_key": adzuna_app_key,
                 "results_per_page": results_per_page,
                 "what": search_term,
                 "content-type": "application/json",
@@ -70,7 +69,7 @@ class AdzunaJobFetcher:
                     jobs_created += 1
             
             db.commit()
-            print(f"✅ Stored {jobs_created} new jobs from Adzuna")
+            print(f"Stored {jobs_created} new jobs from Adzuna")
             return jobs_created
             
         except Exception as e:
