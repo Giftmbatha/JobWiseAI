@@ -1,4 +1,3 @@
-# app/schemas/user.py - Remove enum and use simple strings
 from pydantic import BaseModel, EmailStr, validator
 from typing import Optional
 
@@ -37,7 +36,7 @@ class Token(BaseModel):
     token_type: str
 
 class TokenData(BaseModel):
-    email: Optional[str] = None    
+    email: Optional[str] = None
 
 
 class EmployerResponse(UserResponse):

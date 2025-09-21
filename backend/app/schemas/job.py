@@ -1,4 +1,3 @@
-# app/schemas/job.py
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
@@ -11,7 +10,7 @@ class JobBase(BaseModel):
     requirements: str
     salary_min: Optional[float] = None
     salary_max: Optional[float] = None
-    salary_currency: str = "USD"
+    salary_currency: str = "ZAR"
     job_type: str
     remote: bool = False
     apply_url: Optional[str] = None

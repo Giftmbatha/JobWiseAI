@@ -1,4 +1,3 @@
-# app/routers/auth.py
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
@@ -28,7 +27,7 @@ def get_or_create_user(db: Session, email: str, full_name: str = None):
         db.refresh(user)
     return user
 
-# app/routers/auth.py
+
 @router.post("/register", response_model=UserResponse)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
     # Check if user already exists
@@ -54,7 +53,6 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     
     return user # Use from_orm for Pydantic v1
 
-# app/routers/auth.py - Update login endpoint to include role in token
 @router.post("/login", response_model=Token)
 def login(user_data: UserCreate, db: Session = Depends(get_db)):
     # Find user
@@ -81,7 +79,7 @@ def login(user_data: UserCreate, db: Session = Depends(get_db)):
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-# app/routers/auth.py - Update /me endpoint
+
 @router.get("/me", response_model=UserResponse)
 async def read_users_me(current_user: User = Depends(get_current_user)):
     # Manual conversion to ensure proper format
@@ -136,7 +134,7 @@ async def auth_google_callback(
     access_token = create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
 
-# app/routers/auth.py - Fix employer registration
+
 @router.post("/register/employer", response_model=UserResponse)
 def register_employer(employer_data: EmployerCreate, db: Session = Depends(get_db)):
     # Check if user already exists
@@ -161,3 +159,47 @@ def register_employer(employer_data: EmployerCreate, db: Session = Depends(get_d
     db.refresh(user)
     
     return user
+
+
+@router.post("/create-first-admin", tags=["auth"])
+async def create_first_admin(
+    admin_data: UserCreate,
+    db: Session = Depends(get_db)
+):
+    """
+    Create the first admin user. Only works if no admin exists yet.
+    """
+    # Check if any admin already exists
+    existing_admin = db.query(User).filter(User.role == 'ADMIN').first()
+    if existing_admin:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Admin user already exists"
+        )
+    
+    # Check if user with email already exists
+    existing_user = db.query(User).filter(User.email == admin_data.email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User with this email already exists"
+        )
+    
+    # Create admin user
+    admin_user = User(
+        email=admin_data.email,
+        full_name=admin_data.full_name,
+        hashed_password=get_password_hash(admin_data.password),
+        role='ADMIN',
+        is_active=True
+    )
+    
+    db.add(admin_user)
+    db.commit()
+    db.refresh(admin_user)
+    
+    return {
+        "message": "Admin user created successfully",
+        "user_id": admin_user.id,
+        "email": admin_user.email
+    }

@@ -1,4 +1,3 @@
-# app/routers/jobs.py
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -62,13 +61,14 @@ def create_job(
 ):
     """Create a new job posting (for employers)"""
     # Check if user is employer (you can add role-based authentication later)
-    if not current_user.role:
+    if not current_user:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only employers can create job postings"
         )
+
     
-    job = Job(**job_data.dict(), source="internal")
+    job = Job(**job_data.dict(), source="internal", employer_id=current_user.id)
     db.add(job)
     db.commit()
     db.refresh(job)
@@ -77,12 +77,12 @@ def create_job(
 
 @router.get("/employer", response_model=JobListResponse)
 def get_employer_jobs(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_employer),
     db: Session = Depends(get_db)
 ):
     """Get jobs posted by the current employer"""
     # For now, all internal jobs. Later you can add user_id to Job model
-    jobs = db.query(Job).filter(Job.source == "internal").all()
+    jobs = db.query(Job).filter(Job.employer_id == current_user.id).all()
     
     return {
         "jobs": jobs,
@@ -95,7 +95,7 @@ def get_employer_jobs(
 def update_job(
     job_id: int,
     job_data: JobCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_employer),
     db: Session = Depends(get_db)
 ):
     """Update a job posting (employer only)"""
@@ -118,7 +118,7 @@ def update_job(
 @router.delete("/{job_id}")
 def delete_job(
     job_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_employer),
     db: Session = Depends(get_db)
 ):
     """Delete a job posting (employer only)"""

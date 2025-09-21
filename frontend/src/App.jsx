@@ -7,6 +7,7 @@ import Register from './pages/Register';
 import EmployerRegister from './pages/EmployerRegister';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import MyApplications from './pages/MyApplications';
 
 // Component to handle post-login redirection
 function PostLoginRedirect() {
@@ -95,6 +96,15 @@ function AppContent() {
               <Dashboard />
             </ProtectedRoute>
           } 
+        />
+
+        <Route
+          path="/my-applications"
+          element={
+            <ProtectedRoute>
+              <MyApplications />
+            </ProtectedRoute>
+          }
         />
         
         {/* Catch all route */}

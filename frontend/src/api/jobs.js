@@ -8,7 +8,7 @@ export const jobsAPI = {
   
   getJob: (id) => api.get(`/jobs/${id}`),
   
-  getEmployerJobs: () => api.get('/jobs/employer'),
+  getEmployerJobs: () => api.get('/employer/jobs'),
   
   createJob: (jobData) => api.post('/jobs', jobData),
   

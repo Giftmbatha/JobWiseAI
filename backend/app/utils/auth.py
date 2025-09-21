@@ -1,4 +1,3 @@
-# app/utils/auth.py
 import bcrypt
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
@@ -39,11 +38,11 @@ def decode_access_token(token: str):
         # Check if token is expired
         from datetime import datetime
         if exp and datetime.utcnow() > datetime.fromtimestamp(exp):
-            print("❌ Token expired")
+            print("Token expired")
             return None, None
             
-        print(f"✅ Token valid - Email: {email}, Role: {role}, Exp: {exp}")
+        print(f"Token valid - Email: {email}, Role: {role}, Exp: {exp}")
         return email, role
     except JWTError as e:
-        print(f"❌ Token decode failed: {e}")
+        print(f"Token decode failed: {e}")
         return None, None

@@ -1,28 +1,26 @@
-# app/models/resume.py
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from app.database import Base
 from datetime import datetime
+from app.database import Base
 import json
 
 class Resume(Base):
     __tablename__ = "resumes"
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    filename = Column(String)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    name = Column(String)
     file_path = Column(String)
-    file_type = Column(String)  # pdf, doc, docx
-    parsed_text = Column(Text)
-    skills = Column(Text)  # JSON string of extracted skills
-    experience = Column(Text)  # JSON string of experience
-    education = Column(Text)  # JSON string of education
+    content = Column(Text)  # Parsed resume content
     embeddings = Column(Text)  # JSON string of AI embeddings
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    skills_json = Column(Text, nullable=True)  # Store skills as JSON string
+    experience_json = Column(Text, nullable=True)  # Store experience as JSON string
+    education_json = Column(Text, nullable=True)  # Store education as JSON string
+    uploaded_at = Column(DateTime, default=datetime.utcnow)
     
-    # Relationship
+    # Relationships
     user = relationship("User", back_populates="resumes")
+    applications = relationship("Application", back_populates="resume")
     
 
 def to_dict(self):

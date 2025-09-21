@@ -5,8 +5,14 @@ from fastapi.staticfiles import StaticFiles
 import os
 from app.config import settings
 from app.database import engine, Base
-from app import models
-from app.routers import auth, users, resumes, jobs, ai_matching
+from app.routers import auth
+from app.routers import users
+from app.routers import resumes
+from app.routers import jobs
+from app.routers import reports
+from app.routers import applications
+from app.routers import employer
+from app.routers import ai_matching
 
 # Create DB tables
 Base.metadata.create_all(bind=engine)
@@ -31,7 +37,10 @@ app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(users.router, prefix="/users", tags=["Users"])
 app.include_router(resumes.router, prefix="/resumes", tags=["Resumes"])
 app.include_router(jobs.router, prefix="/jobs", tags=["Jobs"])
+app.include_router(applications.router, prefix="/applications", tags=["Applications"])
 app.include_router(ai_matching.router, prefix="/ai", tags=["AI Matching"])
+app.include_router(reports.router, prefix="/reports", tags=["Reports"])
+app.include_router(employer.router, prefix="/employer", tags=["Employer"])
 
 @app.get("/")
 def root():
