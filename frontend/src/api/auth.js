@@ -40,7 +40,7 @@ export const authAPI = {
   registerEmployer: (employerData) => api.post('/auth/register/employer', employerData),
   login: (credentials) => api.post('/auth/login', credentials),
   getMe: () => api.get('/auth/me'),
-  googleLogin: () => window.location.href = `${API_BASE_URL}/auth/google`,
+  googleLogin: () => window.location.href = `${API_BASE_URL}/google`,
   testGet: () => api.get('/auth/test'),
   testPost: (data) => api.post('/auth/test-post', data),
 };
