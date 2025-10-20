@@ -5,6 +5,8 @@ from sentence_transformers import SentenceTransformer
 import faiss
 import re
 from datetime import datetime, timedelta
+from sqlalchemy.orm import session
+from app.models.job import Job
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -383,6 +385,41 @@ class AIMatchingService:
         
         age = datetime.now() - self.last_update
         return age > timedelta(minutes=max_age_minutes)
+    
+ 
+    
+    def build_job_index_from_db(self, db: session, include_external: bool = True):
+        """Build job index from database jobs"""
+        try:
+            # Query jobs from database
+            query = db.query(Job)
+            if not include_external:
+                query = query.filter(Job.is_external == False)
+            
+            jobs = query.all()
+            
+            # Convert to dict format for indexing
+            job_dicts = []
+            for job in jobs:
+                job_dict = job.to_dict()
+                job_dict['is_external'] = job.is_external
+                job_dicts.append(job_dict)
+            
+            # Create the index
+            self.create_job_index(job_dicts)
+            logger.info(f"Built job index with {len(job_dicts)} jobs from database")
+            
+        except Exception as e:
+            logger.error(f"Error building job index from database: {e}")
+            raise
+
+    def ensure_job_index_loaded(self, db, include_external: bool = True):
+        """Ensure job index is loaded, rebuild if necessary"""
+        if (self.job_index is None or 
+            not self.job_ids or 
+            self.should_rebuild_index()):
+            logger.info("Job index needs to be built or rebuilt")
+            self.build_job_index_from_db(db, include_external)
 
 def get_ai_matcher() -> AIMatchingService:
     """Get or create the AI matching service instance"""
@@ -395,3 +432,4 @@ def get_ai_matcher() -> AIMatchingService:
             logger.error(f"Failed to initialize AI matcher: {e}")
             # Still return instance but it won't have model loaded
     return ai_matcher
+

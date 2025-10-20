@@ -25,4 +25,3 @@ class Application(Base):
     # Add unique constraint to prevent duplicate applications
     __table_args__ = (UniqueConstraint('user_id', 'job_id', name='_user_job_uc'),)
 
-

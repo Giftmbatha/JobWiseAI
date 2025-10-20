@@ -27,7 +27,7 @@ class Job(Base):
     is_external = Column(Boolean,default=False)
     
     # Add employer relationship
-    employer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    employer_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     employer = relationship("User", back_populates="jobs")
     applications = relationship("Application", back_populates="job", cascade="all, delete-orphan")
     

@@ -50,6 +50,10 @@ async def get_ai_recommendations(
         }
         
         matcher = get_ai_matcher()
+        
+        # ✅ CRITICAL FIX: Ensure job index is loaded before getting recommendations
+        matcher.ensure_job_index_loaded(db, include_external)
+        
         recommendations = matcher.get_job_recommendations(
             user_id=user_id,
             resume_data=resume_data,

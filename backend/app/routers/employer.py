@@ -7,8 +7,7 @@ from app.models.job import Job
 from app.models.resume import Resume
 from app.models.user import User
 from app.services.ai_matching import get_ai_matcher
-from app.utils.dependencies import get_current_user, get_current_employer
-from app.utils.permissions import require_employer_role
+from app.utils.dependencies import get_current_employer
 
 router = APIRouter()
 
