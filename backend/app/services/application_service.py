@@ -55,7 +55,6 @@ class ApplicationService:
             db.rollback()
             raise ValueError("Failed to create application")
 
-
     @staticmethod
     async def get_user_applications(db: Session, user_id: int):
         """Get user applications with proper error handling"""
@@ -76,3 +75,53 @@ class ApplicationService:
         except Exception as e:
             print(f"Error fetching application: {e}")
             return None
+
+    
+    @staticmethod
+    async def get_employer_applications(db: Session, employer_id: int, filters: dict = None):
+        """Get applications for all jobs posted by an employer"""
+        try:
+            # Get job IDs posted by this employer
+            job_ids_query = db.query(Job.id).filter(Job.user_id == employer_id)
+            job_ids = [job_id for (job_id,) in job_ids_query.all()]
+            
+            if not job_ids:
+                return []
+            
+            query = db.query(Application).filter(Application.job_id.in_(job_ids))
+            
+            # Apply filters
+            if filters:
+                if filters.get('status'):
+                    query = query.filter(Application.status == filters['status'])
+                if filters.get('job_id'):
+                    query = query.filter(Application.job_id == filters['job_id'])
+            
+            return query.order_by(Application.applied_at.desc()).all()
+        except Exception as e:
+            print(f"Error fetching employer applications: {e}")
+            return []
+    
+    @staticmethod
+    async def update_application_status(db: Session, application_id: int, employer_id: int, new_status: str):
+        """Update application status with employer validation"""
+        try:
+            application = db.query(Application).join(Job).filter(
+                Application.id == application_id,
+                Job.user_id == employer_id
+            ).first()
+            
+            if not application:
+                raise ValueError("Application not found or access denied")
+            
+            valid_statuses = ["pending", "reviewed", "interviewing", "rejected", "offered", "hired"]
+            if new_status not in valid_statuses:
+                raise ValueError(f"Invalid status. Must be one of: {', '.join(valid_statuses)}")
+            
+            application.status = new_status
+            db.commit()
+            db.refresh(application)
+            return application
+        except Exception as e:
+            db.rollback()
+            raise ValueError(str(e))

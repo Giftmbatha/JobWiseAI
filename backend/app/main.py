@@ -13,6 +13,9 @@ from app.routers import reports
 from app.routers import applications
 from app.routers import employer
 from app.routers import ai_matching
+from app.routers import employer_applications
+from app.services.background_index import build_initial_index
+import asyncio
 
 # Create DB tables
 Base.metadata.create_all(bind=engine)
@@ -41,6 +44,7 @@ app.include_router(applications.router, prefix="/applications", tags=["Applicati
 app.include_router(ai_matching.router, prefix="/ai", tags=["AI Matching"])
 app.include_router(reports.router, prefix="/reports", tags=["Reports"])
 app.include_router(employer.router, prefix="/employer", tags=["Employer"])
+app.include_router(employer_applications.router, prefix="/employer/applications", tags=["Employer Applications"])
 
 @app.get("/")
 def root():
@@ -49,3 +53,8 @@ def root():
 @app.get("/test-db")
 def test_db_connection():
     return {"status": "Database connection endpoint"}
+
+@app.on_event("startup")
+async def startup_event():
+    # Build AI index in background
+    asyncio.create_task(build_initial_index())
