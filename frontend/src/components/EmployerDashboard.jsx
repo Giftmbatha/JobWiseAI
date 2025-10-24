@@ -61,6 +61,7 @@ import {
 } from '@mui/icons-material';
 import { jobsAPI } from '../api/jobs';
 import { employerAPI } from '../api/employer';
+import EmployerApplications from '../components/EmployerApplications';
 
 const EmployerDashboard = () => {
   const theme = useTheme();
@@ -77,6 +78,7 @@ const EmployerDashboard = () => {
   const [candidateDialogOpen, setCandidateDialogOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [applicationsCount, setApplicationsCount] = useState(0);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -105,23 +107,26 @@ const EmployerDashboard = () => {
     setSnackbarOpen(true);
   };
 
-  const fetchEmployerJobs = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const response = await jobsAPI.getEmployerJobs();
-      setJobs(response.data.jobs || []);
-      
-      if (response.data.jobs?.length > 0) {
-        fetchCandidateRecommendations(response.data.jobs);
-      }
-    } catch (error) {
-      setError('Failed to fetch your job postings');
-      console.error('Fetch jobs error:', error);
-    } finally {
-      setLoading(false);
+const fetchEmployerJobs = async () => {
+  setLoading(true);
+  setError('');
+  try {
+    const response = await jobsAPI.getEmployerJobs();
+    setJobs(response.data.jobs || []);
+    
+    // Fetch applications count
+    await fetchApplicationsCount();
+    
+    if (response.data.jobs?.length > 0) {
+      fetchCandidateRecommendations(response.data.jobs);
     }
-  };
+  } catch (error) {
+    setError('Failed to fetch your job postings');
+    console.error('Fetch jobs error:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const fetchCandidateRecommendations = async (jobsList) => {
     setCandidateLoading(true);
@@ -139,6 +144,16 @@ const EmployerDashboard = () => {
       setCandidateLoading(false);
     }
   };
+
+  const fetchApplicationsCount = async () => {
+  try {
+    const applicationsData = await employerApplicationsApi.getApplications();
+    setApplicationsCount(applicationsData.length || 0);
+  } catch (error) {
+    console.error('Fetch applications count error:', error);
+    setApplicationsCount(0);
+  }
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -384,68 +399,90 @@ const EmployerDashboard = () => {
             background: 'white',
             boxShadow: '0 2px 8px rgba(29, 80, 58, 0.08)'
           }}>
-            <Tabs 
-              value={activeTab} 
-              onChange={(e, newValue) => setActiveTab(newValue)}
-              sx={{
-                '& .MuiTab-root': { 
-                  minHeight: 50,
-                  fontWeight: 600,
-                  fontSize: '0.875rem',
-                  textTransform: 'none',
-                  '&.Mui-selected': {
-                    color: '#1D503A'
-                  }
-                },
-                '& .MuiTabs-indicator': {
-                  backgroundColor: '#1D503A',
-                  height: 3,
-                  borderRadius: 2
+          
+          <Tabs 
+            value={activeTab} 
+            onChange={(e, newValue) => setActiveTab(newValue)}
+            sx={{
+              '& .MuiTab-root': { 
+                minHeight: 50,
+                fontWeight: 600,
+                fontSize: '0.875rem',
+                textTransform: 'none',
+                '&.Mui-selected': {
+                  color: '#1D503A'
                 }
-              }}
-            >
-              <Tab 
-                label={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Business />
-                    Job Postings
-                    {jobs.length > 0 && (
-                      <Chip 
-                        label={jobs.length} 
-                        size="small" 
-                        sx={{ 
-                          backgroundColor: '#1D503A', 
-                          color: 'white',
-                          fontSize: '0.7rem',
-                          height: 20
-                        }} 
-                      />
-                    )}
-                  </Box>
-                } 
-              />
-              <Tab 
-                label={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Psychology />
-                    AI Recommendations
-                    {totalCandidates > 0 && (
-                      <Chip 
-                        label={totalCandidates} 
-                        size="small" 
-                        sx={{ 
-                          backgroundColor: '#1976d2', 
-                          color: 'white',
-                          fontSize: '0.7rem',
-                          height: 20
-                        }} 
-                      />
-                    )}
-                  </Box>
-                }
-                disabled={jobs.length === 0}
-              />
-            </Tabs>
+              },
+              '& .MuiTabs-indicator': {
+                backgroundColor: '#1D503A',
+                height: 3,
+                borderRadius: 2
+              }
+            }}
+          >
+            <Tab 
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Business />
+                  Job Postings
+                  {jobs.length > 0 && (
+                    <Chip 
+                      label={jobs.length} 
+                      size="small" 
+                      sx={{ 
+                        backgroundColor: '#1D503A', 
+                        color: 'white',
+                        fontSize: '0.7rem',
+                        height: 20
+                      }} 
+                    />
+                  )}
+                </Box>
+              } 
+            />
+            <Tab 
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Psychology />
+                  AI Recommendations
+                  {totalCandidates > 0 && (
+                    <Chip 
+                      label={totalCandidates} 
+                      size="small" 
+                      sx={{ 
+                        backgroundColor: '#1976d2', 
+                        color: 'white',
+                        fontSize: '0.7rem',
+                        height: 20
+                      }} 
+                    />
+                  )}
+                </Box>
+              }
+              disabled={jobs.length === 0}
+            />
+            <Tab 
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Work />
+                  Applications
+                  {applicationsCount > 0 && (
+                    <Chip 
+                      label={applicationsCount} 
+                      size="small" 
+                      sx={{ 
+                        backgroundColor: '#d32f2f', 
+                        color: 'white',
+                        fontSize: '0.7rem',
+                        height: 20
+                      }} 
+                    />
+                  )}
+                </Box>
+              }
+              disabled={jobs.length === 0}
+            />
+          </Tabs>
           </Paper>
 
           {/* Tab Content */}
@@ -457,6 +494,10 @@ const EmployerDashboard = () => {
               onDelete={handleDelete}
               onCreateJob={() => setDialogOpen(true)}
             />
+          )}
+          
+          {activeTab === 2 && (
+            <EmployerApplications />
           )}
 
           {activeTab === 1 && (

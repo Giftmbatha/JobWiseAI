@@ -64,15 +64,15 @@ const AIRecommendations = ({ onApplyClick }) => {
   }, []);
 
   const getJobBadge = (job) => {
-    if (!job.is_external) return { label: 'Internal', color: 'success', icon: <CheckCircle /> };
+    if (!job === 'adzuna') return { label: 'JobWise', color: 'success', icon: <CheckCircle /> };
     if (job.source === 'adzuna') return { label: 'Adzuna', color: 'info', icon: <Business /> };
     return { label: 'External', color: 'default', icon: <OpenInNew /> };
   };
 
   const handleJobAction = (job) => {
-    if (job.is_external && job.apply_url) {
+    if (job.source === 'adzuna' && job.apply_url) {
       window.open(job.apply_url, '_blank', 'noopener,noreferrer');
-    } else if (job.is_external && !job.apply_url) {
+    } else if (job.source == 'adzuna' && !job.apply_url) {
       alert('This is an external job. Please visit the company website to apply.');
     } else {
       onApplyClick(job);
@@ -80,8 +80,8 @@ const AIRecommendations = ({ onApplyClick }) => {
   };
 
   const getActionButtonText = (job) => {
-    if (job.is_external && job.apply_url) return 'Apply Externally';
-    if (job.is_external && !job.apply_url) return 'External Job';
+    if (job.source === 'adzuna' && job.apply_url) return 'Apply Externally';
+    if (job.source === 'adzuna' && !job.apply_url) return 'External Job';
     return 'Apply Now';
   };
 
@@ -322,7 +322,7 @@ const AIRecommendations = ({ onApplyClick }) => {
                   }}
                   onClick={() => handleJobAction(job)}
                   disabled={isActionDisabled(job)}
-                  endIcon={job.is_external && job.apply_url ? <OpenInNew /> : null}
+                  endIcon={job.source && job.apply_url ? <OpenInNew /> : null}
                 >
                   {getActionButtonText(job)}
                 </Button>
@@ -484,7 +484,7 @@ const AIRecommendations = ({ onApplyClick }) => {
           }}>
             <Box>
               <Typography variant="h6" sx={{ color: '#1D503A', fontWeight: 600, mb: 0.5 }}>
-                🎯 Personalized Job Matches
+                 Personalized Job Matches
               </Typography>
               <Typography variant="body2" sx={{ color: '#666' }}>
                 Found {recommendations.length} perfect match{recommendations.length !== 1 ? 'es' : ''} for you

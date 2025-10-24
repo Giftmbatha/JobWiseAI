@@ -94,15 +94,15 @@ const JobsList = ({ onApplyClick }) => {
   }, []);
 
   const getJobBadge = (job) => {
-    if (!job.is_external) return { label: 'Internal', color: 'success', icon: <Star /> };
+    if (!job.source === 'adzuna') return { label: 'JobWise', color: 'success', icon: <Star /> };
     if (job.source === 'adzuna') return { label: 'Adzuna', color: 'info', icon: <Public /> };
-    return { label: 'External', color: 'default', icon: <OpenInNew /> };
+    return { label: 'JobWise', color: 'default', icon: <OpenInNew /> };
   };
 
   const handleJobAction = (job) => {
-    if (job.is_external && job.apply_url) {
+    if (job.source === 'adzuna' && job.apply_url) {
       window.open(job.apply_url, '_blank', 'noopener,noreferrer');
-    } else if (job.is_external && !job.apply_url) {
+    } else if (job.source === 'adzuna' && !job.apply_url) {
       alert('This is an external job. Please visit the company website to apply.');
     } else {
       onApplyClick(job);
@@ -110,8 +110,8 @@ const JobsList = ({ onApplyClick }) => {
   };
 
   const getActionButtonText = (job) => {
-    if (job.is_external && job.apply_url) return 'Apply Externally';
-    if (job.is_external && !job.apply_url) return 'External Job';
+    if (job.source === 'adzuna' && job.apply_url) return 'Apply Externally';
+    if (job.source === 'adzuna' && !job.apply_url) return 'External Job';
     return 'Apply Now';
   };
 
