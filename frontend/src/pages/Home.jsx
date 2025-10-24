@@ -236,7 +236,7 @@ const Home = () => {
             </Box>
           </Box>
 
-          <Typography variant="body2" sx={{ 
+          <Typography variant="body2" sx={{
             color: '#484848', 
             mb: 3, 
             lineHeight: 1.5,
