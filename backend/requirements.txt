@@ -1,6 +1,6 @@
 # requirements.txt
 fastapi==0.68.0
-uvicorn[standard]==0.15.0
+uvicorn==0.15.0
 sqlalchemy==1.4.46
 alembic==1.8.1
 python-dotenv==0.19.0
@@ -14,6 +14,8 @@ pydantic==1.10.7
 starlette==0.14.2
 PyPDF2==3.0.1
 python-docx==0.8.11
+aiofiles==0.8.0
+psycopg2[binary]==3.1.18
 
 # AI dependencies
 sentence-transformers==2.2.2
