@@ -25,7 +25,7 @@ app = FastAPI(title="JobWiseAI", version="0.1.0")
 # Configure CORS - More comprehensive configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=["*"],  # Allow all origins (for development). In production, specify allowed origins.
     allow_credentials=True,
     allow_methods=["*"],  # Allow all methods
     allow_headers=["*"],  # Allow all headers

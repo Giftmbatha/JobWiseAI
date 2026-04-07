@@ -1,5 +1,6 @@
 venv/
 env/
+__pycache__/
 
 # Node.js
 node_modules/
@@ -14,6 +15,7 @@ target/
 *.tmp
 *.bak
 *.log
+*.upload
 
 # IDE/Editor specific
 .vscode/
