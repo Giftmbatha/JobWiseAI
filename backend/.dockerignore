@@ -1,0 +1,24 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+.env
+
+# AI/Machine Learning
+.ipynb_checkpoints/
+.pytest_cache/
+.data/
+# Ignore local model downloads if you have them
+models/
+
+# OS/IDEs
+.vscode/
+.idea/
+.DS_Store
